@@ -1,0 +1,1680 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="./resources/ol.css">
+        <link rel="stylesheet" href="resources/fontawesome-all.min.css">
+        <link href="resources/photon-geocoder-autocomplete.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
+        <link rel="stylesheet" href="./resources/qgis2web.css">
+        <style>
+        html, body {
+            background-color: #ffffff;
+        }
+        .ol-control > * {
+            background-color: #f8f8f8!important;
+            color: #444444!important;
+            border-radius: 0px;
+        }
+        .ol-attribution a, .gcd-gl-input::placeholder, .search-layer-input-search::placeholder {
+            color: #444444!important;
+        }
+        .search-layer-input-search {
+            background-color: #f8f8f8!important;
+        }
+        .ol-control > *:focus, .ol-control >*:hover {
+            background-color: rgba(248, 248, 248, 0.7)!important;
+        } 
+        .ol-control {
+            background-color: rgba(255,255,255,.4) !important;
+            padding: 2px !important;
+        } 
+        
+        /* compact panel tuning v7 */
+        #app-panel {
+            width: min(340px, calc(100vw - 32px));
+            max-height: calc(100vh - 24px);
+        }
+        .panel-inner { padding: 12px 12px 10px; }
+        .panel-kicker { margin: 0 0 4px; }
+        .panel-title { font-size: 22px; line-height: 1.05; }
+        .panel-subtitle { margin: 4px 0 8px; line-height: 1.35; }
+        .panel-chips { gap: 5px; margin-bottom: 8px; }
+        .panel-chip { padding: 4px 8px; font-size: 11px; }
+        .panel-section-title { margin: 2px 0 6px; }
+        .panel-note { margin-top: 6px; padding: 6px 8px; font-size: 11px; line-height: 1.35; }
+
+        #panel-layers .layer-switcher > button { display: none !important; }
+        #panel-layers .layer-switcher ul {
+            margin: .35em .35em .45em !important;
+            padding-left: 0 !important;
+        }
+        #panel-layers .layer-switcher ul ul {
+            margin: .2em 0 0 0 !important;
+            padding-left: .75em !important;
+        }
+        #panel-layers .group {
+            padding: 4px 6px !important;
+            margin: 0 !important;
+        }
+        #panel-layers .group + .group { margin-top: 0 !important; }
+        #panel-layers .group > label {
+            margin: 0 !important;
+            padding-left: 20px !important;
+        }
+        #panel-layers .group > ul {
+            margin-top: 4px !important;
+            margin-bottom: 0 !important;
+        }
+        .layer-switcher li {
+            margin-top: .12em !important;
+            margin-bottom: 0 !important;
+            min-height: 0 !important;
+        }
+        .layer-switcher li input {
+            left: .75em !important;
+            top: .2em !important;
+        }
+        .layer-switcher li label {
+            padding-left: 2.25em !important;
+            padding-right: .35em !important;
+            margin-top: 0 !important;
+            line-height: 1.22 !important;
+        }
+        .layer-switcher li label .layer-legend {
+            margin-top: 5px !important;
+            padding-top: 5px !important;
+            line-height: 1.35 !important;
+        }
+        .layer-switcher li label .layer-legend br { margin-bottom: 2px !important; }
+        .legend-swatch, .legend-triangle { margin-right: 6px !important; }
+
+        @media (max-width: 768px) {
+            #app-panel {
+                width: min(320px, calc(100vw - 20px));
+                max-height: min(70vh, 560px);
+            }
+            .panel-inner { padding: 10px 10px 9px; }
+            .panel-title { font-size: 19px; }
+            .panel-subtitle { font-size: 12px; }
+            .panel-note { font-size: 10.5px; }
+        }
+
+        </style>
+
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* compact panel tuning v7 */
+        #app-panel {
+            width: min(340px, calc(100vw - 32px));
+            max-height: calc(100vh - 24px);
+        }
+        .panel-inner { padding: 12px 12px 10px; }
+        .panel-kicker { margin: 0 0 4px; }
+        .panel-title { font-size: 22px; line-height: 1.05; }
+        .panel-subtitle { margin: 4px 0 8px; line-height: 1.35; }
+        .panel-chips { gap: 5px; margin-bottom: 8px; }
+        .panel-chip { padding: 4px 8px; font-size: 11px; }
+        .panel-section-title { margin: 2px 0 6px; }
+        .panel-note { margin-top: 6px; padding: 6px 8px; font-size: 11px; line-height: 1.35; }
+
+        #panel-layers .layer-switcher > button { display: none !important; }
+        #panel-layers .layer-switcher ul {
+            margin: .35em .35em .45em !important;
+            padding-left: 0 !important;
+        }
+        #panel-layers .layer-switcher ul ul {
+            margin: .2em 0 0 0 !important;
+            padding-left: .75em !important;
+        }
+        #panel-layers .group {
+            padding: 4px 6px !important;
+            margin: 0 !important;
+        }
+        #panel-layers .group + .group { margin-top: 0 !important; }
+        #panel-layers .group > label {
+            margin: 0 !important;
+            padding-left: 20px !important;
+        }
+        #panel-layers .group > ul {
+            margin-top: 4px !important;
+            margin-bottom: 0 !important;
+        }
+        .layer-switcher li {
+            margin-top: .12em !important;
+            margin-bottom: 0 !important;
+            min-height: 0 !important;
+        }
+        .layer-switcher li input {
+            left: .75em !important;
+            top: .2em !important;
+        }
+        .layer-switcher li label {
+            padding-left: 2.25em !important;
+            padding-right: .35em !important;
+            margin-top: 0 !important;
+            line-height: 1.22 !important;
+        }
+        .layer-switcher li label .layer-legend {
+            margin-top: 5px !important;
+            padding-top: 5px !important;
+            line-height: 1.35 !important;
+        }
+        .layer-switcher li label .layer-legend br { margin-bottom: 2px !important; }
+        .legend-swatch, .legend-triangle { margin-right: 6px !important; }
+
+        @media (max-width: 768px) {
+            #app-panel {
+                width: min(320px, calc(100vw - 20px));
+                max-height: min(70vh, 560px);
+            }
+            .panel-inner { padding: 10px 10px 9px; }
+            .panel-title { font-size: 19px; }
+            .panel-subtitle { font-size: 12px; }
+            .panel-note { font-size: 10.5px; }
+        }
+
+        </style>
+        <title>Proyectos Tierras Blancas</title>
+    
+        <style>
+        :root {
+            --panel-width: 360px;
+            --panel-bg: rgba(255,255,255,0.96);
+            --panel-border: rgba(15,23,42,0.08);
+            --shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+            --text: #102033;
+            --muted: #5b6b7f;
+            --accent: #1f5f8b;
+        }
+        body {
+            font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+            color: var(--text);
+        }
+        #map {
+            position: relative;
+        }
+        #app-panel {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 1200;
+            width: min(312px, calc(100vw - 28px));
+            max-height: calc(100vh - 32px);
+            overflow: hidden;
+            background: var(--panel-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--panel-border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+        .panel-inner {
+            padding: 11px 11px 9px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+        .panel-kicker {
+            margin: 0 0 4px;
+            font-size: 11px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #2a6f97;
+            font-weight: 700;
+        }
+        .panel-title {
+            margin: 0;
+            font-size: 21px;
+            line-height: 1.05;
+        }
+        .panel-subtitle {
+            margin: 5px 0 8px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+        .panel-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        .panel-chip {
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #eff4f8;
+            color: #294861;
+        }
+        .panel-section-title {
+            margin: 2px 0 6px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #63758a;
+            font-weight: 700;
+        }
+        #panel-layers {
+            position: static;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        #panel-layers .layer-switcher {
+            position: static;
+            box-shadow: none;
+            border: 0;
+            background: transparent;
+            width: 100%;
+        }
+        #panel-layers .panel {
+            border: 1px solid rgba(15,23,42,.08);
+            border-radius: 14px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+        }
+        #panel-layers .group {
+            padding: 5px 7px;
+            border-bottom: 1px solid rgba(15,23,42,.06);
+        }
+        #panel-layers .group:last-child { border-bottom: 0; }
+        #panel-layers label {
+            color: var(--text);
+            font-size: 12px;
+            line-height: 1.25;
+        }
+        #panel-layers .group button {
+            color: var(--accent);
+        }
+        .panel-note {
+            margin-top: 6px;
+            padding: 6px 8px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #f8fbfd, #eef4f8);
+            color: #466179;
+            font-size: 11px;
+            line-height: 1.35;
+        }
+        .ol-control {
+            box-shadow: 0 8px 24px rgba(15,23,42,.18);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .ol-popup {
+            min-width: 340px;
+            max-width: 520px;
+            padding: 16px 16px 12px;
+            border-radius: 18px;
+            border: 1px solid rgba(15,23,42,.08);
+            box-shadow: 0 20px 50px rgba(15,23,42,.22);
+        }
+        .popup-card h3 {
+            margin: 0 24px 10px 0;
+            font-size: 16px;
+            line-height: 1.3;
+            color: #0f2438;
+        }
+        .popup-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 0 0 10px;
+        }
+        .popup-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #eef4f8;
+            color: #294861;
+        }
+        .popup-grid {
+            display: grid;
+            grid-template-columns: 110px 1fr;
+            gap: 7px 10px;
+            font-size: 12px;
+        }
+        .popup-grid dt {
+            margin: 0;
+            color: #6b7d8f;
+            font-weight: 700;
+        }
+        .popup-grid dd {
+            margin: 0;
+            color: #102033;
+        }
+        .popup-small { color: #6b7d8f; font-size: 11px; margin-top: 10px; }
+        .ol-popup-closer {
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            border-radius: 999px;
+            background: #f3f6f9;
+            color: #597086;
+            font-family: Arial, sans-serif;
+        }
+        .ol-popup-closer:after { content: "×"; font-size: 16px; }
+        .bottom-attribution {
+            background: rgba(255,255,255,.92);
+            border-radius: 14px 0 0 0;
+            padding: 4px 8px;
+        }
+
+        #brand-badge {
+            position: absolute;
+            left: 16px;
+            bottom: 16px;
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.94);
+            border: 1px solid rgba(15,23,42,.08);
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(15,23,42,.16);
+            backdrop-filter: blur(6px);
+        }
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0f4c81, #2a6f97);
+            display: grid;
+            place-items: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .brand-text { display:flex; flex-direction:column; line-height:1.1; }
+        .brand-text strong { font-size: 13px; color:#0f2438; }
+        .brand-text span { font-size: 11px; color:#5b6b7f; }
+        .layer-switcher li label {
+            display: block !important;
+            width: 100%;
+            white-space: normal;
+        }
+        .layer-switcher li label .layer-legend {
+            display: block !important;
+            margin-top: 8px;
+            margin-left: 0;
+            padding-top: 8px;
+            border-top: 1px solid rgba(15,23,42,.08);
+            line-height: 1.55;
+        }
+        .layer-switcher li label .layer-legend br {
+            display: block;
+            content: "";
+            margin-bottom: 4px;
+        }
+        .layer-switcher li.group > label {
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+        .layer-switcher li.group > label .layer-legend {
+            font-size: 12px;
+            font-weight: 600;
+            color: #44586d;
+        }
+        .layer-switcher li.group > label .legend-swatch,
+        .layer-switcher li.group > label .legend-triangle {
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        .layer-switcher ul ul {
+            margin-top: 8px;
+        }
+        #panel-layers .layer-switcher.shown {
+            max-height: none;
+            padding-left: 0;
+        }
+        #panel-layers .layer-switcher ul {
+            margin: 0;
+        }
+        #panel-layers .panel {
+            max-height: none;
+            height: auto;
+            overflow: visible;
+        }
+        #panel-layers .group {
+            margin: 0;
+        }
+        #panel-layers .group > ul {
+            margin-bottom: 0;
+        }
+        #panel-layers .group > ul > li:last-child {
+            margin-bottom: 0;
+        }
+        @media (max-width: 768px) {
+            #app-panel {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+                max-height: calc(100vh - 20px);
+                border-radius: 16px;
+            }
+            .panel-inner {
+                padding: 10px 10px 8px;
+            }
+            .panel-title {
+                font-size: 18px;
+            }
+            .panel-subtitle {
+                font-size: 12px;
+            }
+            #brand-badge {
+                left: 10px;
+                bottom: 10px;
+                padding: 6px 8px;
+                gap: 6px;
+            }
+            .brand-mark {
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                font-size: 16px;
+            }
+        }
+        .legend-swatch {
+            display:inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 7px;
+            vertical-align: -1px;
+            border: 2px solid rgba(255,255,255,.95);
+            box-shadow: 0 0 0 1px rgba(15,23,42,.18);
+        }
+        .legend-circle { border-radius: 999px; }
+        .legend-square { border-radius: 3px; }
+        .legend-diamond { transform: rotate(45deg); border-radius: 2px; }
+        .legend-triangle {
+            display:inline-block;
+            width: 0; height: 0; margin-right: 9px; vertical-align:-1px;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 14px solid #3498db;
+            border-top: 0; border-radius: 0; box-shadow: none;
+        }
+        .legend-line { width: 16px; height: 4px; border-radius: 999px; }
+        #panel-layers ul { padding-left: 0; }
+        #panel-layers li { list-style: none; }
+        #panel-layers .panel > ul > li.group {
+            display: block;
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(15,23,42,.07);
+        }
+        #panel-layers .panel > ul > li.group:last-child { border-bottom: 0; }
+        #panel-layers .group > button {
+            top: 12px;
+            left: 10px;
+        }
+        #panel-layers .group > label {
+            display: block;
+            width: 100%;
+            padding-left: 24px;
+            padding-right: 0;
+            margin: 0;
+            line-height: 1.35;
+        }
+        #panel-layers .group > label > span:first-of-type,
+        #panel-layers .group > label {
+            font-weight: 700;
+            display: block;
+        }
+        #panel-layers .group > label .layer-legend {
+            display: block;
+            margin: 4px 0 0;
+            color:#5b6b7f;
+            font-size:12px;
+            font-weight: 500;
+            line-height:1.45;
+        }
+        #panel-layers .group > label img { display:none; }
+        #panel-layers .group > label br { display:none; }
+        #panel-layers .group > ul {
+            display: block;
+            clear: both;
+            margin: 8px 0 0 0;
+            padding-left: 24px;
+        }
+        #panel-layers .group > ul > li {
+            margin-top: 5px;
+        }
+        #panel-layers .group > ul > li:first-child {
+            margin-top: 0;
+        }
+        #panel-layers .group > ul > li > label {
+            display: inline-block;
+            width: calc(100% - 30px);
+            padding-left: 30px;
+            padding-right: 0;
+            font-weight: 500;
+            line-height: 1.35;
+            color: #23384c;
+        }
+        #panel-layers .group > ul > li > input {
+            left: 0;
+            top: 1px;
+        }
+        #panel-layers .group input { accent-color:#1f5f8b; }
+        @media (max-width: 900px) {
+            #app-panel {
+                width: calc(100vw - 20px);
+                top: 10px;
+                right: 10px;
+                max-height: min(62vh, 520px);
+                border-radius: 18px;
+            }
+            .panel-inner { padding: 16px 14px 12px; }
+            .panel-title { font-size: 18px; }
+            .panel-subtitle, .panel-note { font-size: 12px; }
+            .panel-chip { font-size: 11px; }
+            .ol-popup { min-width: 260px; max-width: calc(100vw - 24px); }
+        }
+        @media (max-width: 640px) {
+            #app-panel {
+                left: 10px;
+                right: 10px;
+                width: auto;
+                max-height: 58vh;
+            }
+            .panel-title { font-size: 18px; }
+            .panel-chips { gap: 6px; }
+            #brand-badge {
+                left: 10px;
+                bottom: 10px;
+                transform: scale(.94);
+                transform-origin: left bottom;
+            }
+            #panel-layers .group > label,
+            #panel-layers .group > ul {
+                padding-left: 22px;
+            }
+            #panel-layers .group > ul > li > label {
+                width: calc(100% - 26px);
+                padding-left: 26px;
+                font-size: 12px;
+            }
+        }
+        
+        /* compact panel tuning v7 */
+        #app-panel {
+            width: min(340px, calc(100vw - 32px));
+            max-height: calc(100vh - 24px);
+        }
+        .panel-inner { padding: 12px 12px 10px; }
+        .panel-kicker { margin: 0 0 4px; }
+        .panel-title { font-size: 22px; line-height: 1.05; }
+        .panel-subtitle { margin: 4px 0 8px; line-height: 1.35; }
+        .panel-chips { gap: 5px; margin-bottom: 8px; }
+        .panel-chip { padding: 4px 8px; font-size: 11px; }
+        .panel-section-title { margin: 2px 0 6px; }
+        .panel-note { margin-top: 6px; padding: 6px 8px; font-size: 11px; line-height: 1.35; }
+
+        #panel-layers .layer-switcher > button { display: none !important; }
+        #panel-layers .layer-switcher ul {
+            margin: .35em .35em .45em !important;
+            padding-left: 0 !important;
+        }
+        #panel-layers .layer-switcher ul ul {
+            margin: .2em 0 0 0 !important;
+            padding-left: .75em !important;
+        }
+        #panel-layers .group {
+            padding: 4px 6px !important;
+            margin: 0 !important;
+        }
+        #panel-layers .group + .group { margin-top: 0 !important; }
+        #panel-layers .group > label {
+            margin: 0 !important;
+            padding-left: 20px !important;
+        }
+        #panel-layers .group > ul {
+            margin-top: 4px !important;
+            margin-bottom: 0 !important;
+        }
+        .layer-switcher li {
+            margin-top: .12em !important;
+            margin-bottom: 0 !important;
+            min-height: 0 !important;
+        }
+        .layer-switcher li input {
+            left: .75em !important;
+            top: .2em !important;
+        }
+        .layer-switcher li label {
+            padding-left: 2.25em !important;
+            padding-right: .35em !important;
+            margin-top: 0 !important;
+            line-height: 1.22 !important;
+        }
+        .layer-switcher li label .layer-legend {
+            margin-top: 5px !important;
+            padding-top: 5px !important;
+            line-height: 1.35 !important;
+        }
+        .layer-switcher li label .layer-legend br { margin-bottom: 2px !important; }
+        .legend-swatch, .legend-triangle { margin-right: 6px !important; }
+
+        @media (max-width: 768px) {
+            #app-panel {
+                width: min(320px, calc(100vw - 20px));
+                max-height: min(70vh, 560px);
+            }
+            .panel-inner { padding: 10px 10px 9px; }
+            .panel-title { font-size: 19px; }
+            .panel-subtitle { font-size: 12px; }
+            .panel-note { font-size: 10.5px; }
+        }
+
+        </style>
+
+    
+        <style id="v8-panel-fixes">
+        /* v8 panel fixes: remove right blank space and make rows use full width */
+        #app-panel { width: min(324px, calc(100vw - 24px)) !important; }
+        #panel-layers .layer-switcher,
+        #panel-layers .layer-switcher.shown,
+        #panel-layers .panel { width: 100% !important; box-sizing: border-box !important; }
+        #panel-layers .layer-switcher.shown.layer-switcher-activation-mode-click { padding-left: 0 !important; }
+        #panel-layers .panel > ul > li.group { padding: 7px 8px !important; }
+        #panel-layers .group > label { padding-left: 22px !important; padding-right: 0 !important; box-sizing: border-box !important; }
+        #panel-layers .group > ul { padding-left: 22px !important; margin-top: 6px !important; box-sizing: border-box !important; }
+        #panel-layers .group > ul > li > label {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            padding-left: 24px !important;
+            padding-right: 0 !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere;
+        }
+        #panel-layers .group > ul > li { position: relative; }
+        #panel-layers .group > ul > li > input { left: 0 !important; top: 2px !important; }
+        #panel-layers .group > label .layer-legend { margin-right: 0 !important; padding-right: 0 !important; }
+        @media (max-width: 900px) {
+            #app-panel { width: min(320px, calc(100vw - 20px)) !important; }
+        }
+        @media (max-width: 640px) {
+            #app-panel { width: auto !important; }
+            #panel-layers .group > ul,
+            #panel-layers .group > label { padding-left: 20px !important; }
+            #panel-layers .group > ul > li > label { padding-left: 22px !important; }
+        }
+        </style>
+
+        <style>
+        .floating-chart {
+            position: absolute;
+            top: 76px;
+            left: 16px;
+            z-index: 1250;
+            width: min(286px, calc(100vw - 32px));
+            margin-top: 0;
+            padding: 10px;
+            box-shadow: 0 12px 30px rgba(15,23,42,.16);
+            backdrop-filter: blur(6px);
+            background: rgba(255,255,255,.96);
+            border: 1px solid rgba(15,23,42,.08);
+            border-radius: 18px;
+            transition: transform .28s ease, box-shadow .28s ease, width .25s ease;
+            overflow: hidden;
+        }
+        .floating-chart.is-collapsed {
+            width: auto;
+            padding: 10px 12px;
+        }
+        .floating-chart.is-collapsed .chart-body { display: none; }
+        .chart-header {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            margin-bottom: 6px;
+        }
+        .chart-title-wrap { min-width:0; }
+        .chart-section-title {
+            margin: 0 0 2px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #63758a;
+            font-weight: 800;
+        }
+        .chart-subtitle {
+            margin: 0;
+            font-size: 12px;
+            color: #5b6b7f;
+        }
+        .chart-toggle {
+            border: 0;
+            background: #eef4f8;
+            color: #1f5f8b;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            font-size: 16px;
+            cursor: pointer;
+            flex: 0 0 auto;
+            transition: transform .2s ease, background .2s ease;
+        }
+        .chart-toggle:hover { background:#dde8f1; }
+        .floating-chart.is-collapsed .chart-toggle { transform: rotate(180deg); }
+        .chart-body {
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+            animation: chartFade .35s ease;
+        }
+        @keyframes chartFade {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chart-label {
+            display:block;
+            margin-bottom:6px;
+            font-size:11px;
+            font-weight:700;
+            color:#36516a;
+            text-transform:uppercase;
+            letter-spacing:.06em;
+        }
+        .chart-selector {
+            width:100%;
+            box-sizing:border-box;
+            border:1px solid rgba(31,95,139,.18);
+            border-radius:10px;
+            padding:7px 9px;
+            font-size:12px;
+            color:#102033;
+            background:#fff;
+        }
+        .chart-donut-wrap {
+            display:grid;
+            grid-template-columns: 116px minmax(0,1fr);
+            gap: 10px;
+            align-items:center;
+        }
+        .chart-donut {
+            --donut-bg: conic-gradient(#dbe5ee 0deg 360deg);
+            width: 116px;
+            height: 116px;
+            border-radius: 50%;
+            background: var(--donut-bg);
+            position: relative;
+            box-shadow: inset 0 0 0 1px rgba(15,23,42,.06);
+            transform: scale(.88);
+            opacity: 0;
+            animation: donutPop .7s cubic-bezier(.2,.8,.2,1) forwards;
+        }
+        .chart-donut::before {
+            content: '';
+            position: absolute;
+            inset: 18px;
+            background: rgba(255,255,255,.97);
+            border-radius: 50%;
+            box-shadow: inset 0 0 0 1px rgba(15,23,42,.05);
+        }
+        .chart-donut-center {
+            position:absolute;
+            inset:0;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            z-index:1;
+            text-align:center;
+            pointer-events:none;
+        }
+        .chart-total { font-size: 22px; font-weight: 800; color:#102033; line-height:1; }
+        .chart-total-label { font-size: 11px; color:#63758a; text-transform:uppercase; letter-spacing:.06em; margin-top:4px; }
+        @keyframes donutPop {
+            0% { transform: scale(.78) rotate(-80deg); opacity: .2; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .chart-legend {
+            display:flex;
+            flex-direction:column;
+            gap:6px;
+            min-width:0;
+            max-height: none;
+            overflow:visible;
+            padding-right: 2px;
+        }
+        .chart-legend-item {
+            display:grid;
+            grid-template-columns: 16px minmax(0,1fr) auto;
+            gap:8px;
+            align-items:center;
+            font-size:12px;
+        }
+        .chart-dot {
+            width:12px;
+            height:12px;
+            border-radius:999px;
+            box-shadow: 0 0 0 1px rgba(15,23,42,.08);
+        }
+        .chart-item-name {
+            color:#223548;
+            white-space:normal;
+            overflow:visible;
+            text-overflow:clip;
+            line-height:1.2;
+            font-weight:600;
+        }
+        .chart-item-value { color:#486277; font-weight:700; }
+        
+        @media (max-width: 900px) {
+            .floating-chart {
+                width: min(248px, calc(100vw - 20px));
+                top: 72px;
+                left: 10px;
+            }
+            .chart-donut-wrap { grid-template-columns: 104px minmax(0,1fr); gap: 8px; }
+            .chart-donut { width: 104px; height: 104px; }
+            .chart-donut::before { inset: 16px; }
+        }
+        @media (max-width: 640px) {
+            .floating-chart {
+                width: min(248px, calc(100vw - 20px));
+                top: 68px;
+                left: 10px;
+            }
+            .chart-donut-wrap {
+                grid-template-columns: 1fr;
+                justify-items:center;
+            }
+            .chart-legend {
+                width:100%;
+                max-height: none;
+            }
+        }
+        </style>
+
+
+<style id="v13-responsive-overrides">
+/* final responsive pass */
+#app-panel,
+.floating-chart,
+#brand-badge {
+  box-sizing: border-box;
+}
+#app-panel {
+  width: min(320px, calc(100vw - 24px)) !important;
+}
+.panel-head {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.panel-heading { min-width:0; flex:1 1 auto; }
+.panel-toggle {
+  display:none;
+  border:0;
+  background:#eef4f8;
+  color:#1f5f8b;
+  width:34px;
+  height:34px;
+  border-radius:999px;
+  font-size:16px;
+  cursor:pointer;
+  flex:0 0 auto;
+  transition:transform .2s ease, background .2s ease;
+}
+.panel-toggle:hover { background:#dde8f1; }
+#app-panel.is-collapsed .panel-body { display:none; }
+#app-panel.is-collapsed .panel-toggle { transform: rotate(180deg); }
+.panel-body {
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  min-height:0;
+}
+#panel-layers .panel {
+  overflow:visible !important;
+}
+#brand-badge {
+  gap: 10px;
+  padding: 8px 12px;
+  max-width: min(280px, calc(100vw - 24px));
+}
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  object-position: center;
+  flex: 0 0 48px;
+  display:block;
+}
+.brand-mark.is-hidden { display:none !important; }
+.brand-text { min-width: 0; }
+.brand-text strong, .brand-text span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 1100px) {
+  #app-panel {
+    width: min(300px, calc(100vw - 20px)) !important;
+    max-height: calc(100vh - 20px) !important;
+  }
+  .floating-chart {
+    width: min(250px, calc(100vw - 20px));
+  }
+}
+@media (max-width: 860px) {
+  #app-panel {
+    top: 10px;
+    right: 10px;
+    width: min(286px, calc(100vw - 20px)) !important;
+    max-height: none !important;
+  }
+  .panel-toggle { display:inline-flex; align-items:center; justify-content:center; }
+  .panel-inner { padding: 10px 10px 9px !important; }
+  .panel-title { font-size: 18px !important; }
+  .panel-subtitle { font-size: 11.5px !important; margin-bottom: 6px !important; }
+  .panel-chip { font-size: 10px !important; padding: 4px 7px !important; }
+  #panel-layers .panel > ul > li.group { padding: 6px 7px !important; }
+  #panel-layers .group > label .layer-legend { font-size: 11px !important; }
+  #brand-badge {
+    left: 10px;
+    bottom: 10px;
+    max-width: min(220px, calc(100vw - 20px));
+    padding: 7px 9px;
+  }
+  .brand-logo { width:40px; height:40px; flex-basis:40px; }
+  .brand-text strong { font-size: 12px; }
+  .brand-text span { font-size: 10px; }
+}
+@media (max-width: 680px) {
+  .floating-chart {
+    top: 84px;
+    left: 10px;
+    width: min(220px, calc(100vw - 20px));
+    padding: 8px;
+  }
+  .chart-section-title { font-size: 11px; }
+  .chart-subtitle { font-size: 11px; }
+  .chart-selector { font-size: 11px; padding: 6px 8px; }
+  .chart-donut-wrap { grid-template-columns: 88px minmax(0,1fr); gap: 8px; }
+  .chart-donut { width: 88px; height: 88px; }
+  .chart-donut::before { inset: 14px; }
+  .chart-total { font-size: 18px; }
+  .chart-total-label { font-size: 10px; }
+  .chart-legend-item { font-size: 11px; gap: 6px; grid-template-columns: 12px minmax(0,1fr) auto; }
+  .chart-dot { width: 10px; height: 10px; }
+}
+@media (max-width: 560px) {
+  #app-panel {
+    top: 10px;
+    right: 10px;
+    left: auto;
+    width: min(210px, calc(100vw - 20px)) !important;
+  }
+  .panel-kicker { font-size: 10px !important; }
+  .panel-title { font-size: 16px !important; }
+  .panel-subtitle,
+  .panel-note,
+  #panel-layers label,
+  #panel-layers .group > label .layer-legend { font-size: 10.5px !important; }
+  .panel-chips { display:none !important; }
+  .floating-chart {
+    top: 96px;
+    left: 10px;
+    width: min(170px, calc(100vw - 20px));
+  }
+  .floating-chart .chart-subtitle { display:none; }
+  .chart-donut-wrap { grid-template-columns: 1fr; justify-items:center; }
+  .chart-legend { width: 100%; gap: 4px; }
+  .chart-item-value { font-size: 10.5px; }
+  #brand-badge {
+    max-width: min(170px, calc(100vw - 20px));
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .brand-logo { width:32px; height:32px; flex-basis:32px; }
+  .brand-text strong { font-size: 10.5px; }
+  .brand-text span { font-size: 9.5px; }
+}
+@media (max-width: 420px) {
+  #app-panel { width: min(184px, calc(100vw - 16px)) !important; right: 8px; top: 8px; }
+  .floating-chart { left: 8px; top: 92px; width: min(150px, calc(100vw - 16px)); }
+  #brand-badge { left: 8px; bottom: 8px; max-width: 148px; }
+}
+
+@media (max-width: 860px) {
+  #app-panel:not(.is-collapsed) .panel-body { display:flex !important; }
+}
+
+@media (max-width: 860px) {
+  #app-panel.is-collapsed {
+    width: auto !important;
+    min-width: 0;
+    max-width: calc(100vw - 20px);
+  }
+  #app-panel.is-collapsed .panel-inner {
+    padding: 8px 8px 8px !important;
+  }
+  #app-panel.is-collapsed .panel-heading {
+    display:none;
+  }
+  #app-panel.is-collapsed .panel-head {
+    justify-content:flex-end;
+  }
+  #app-panel.is-collapsed .panel-toggle {
+    margin-left:auto;
+  }
+  .floating-chart.is-collapsed {
+    width: auto;
+    min-width: 0;
+  }
+}
+</style>
+
+
+<style id="v19-popup-finance-style">
+.popup-finance {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(15,23,42,.08);
+}
+.popup-finance-title {
+    margin-bottom: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #63758a;
+    font-weight: 800;
+}
+.popup-finance-grid {
+    display: grid;
+    grid-template-columns: repeat(3, max-content);
+    justify-content: space-between;
+    gap: 8px;
+}
+.popup-finance-card {
+    padding: 8px 8px;
+    border-radius: 12px;
+    background: #f4f8fb;
+    border: 1px solid rgba(15,23,42,.06);
+    min-width: max-content;
+}
+.popup-finance-card span {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 10px;
+    color: #6b7d8f;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+.popup-finance-card strong {
+    display: block;
+    color: #102033;
+    font-size: 11.5px;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    font-variant-numeric: tabular-nums;
+}
+.popup-finance-total {
+    background: linear-gradient(180deg, #eaf3fb, #dcebf6);
+    border-color: rgba(31,95,139,.16);
+}
+@media (max-width: 520px) {
+    .ol-popup { min-width: 280px; max-width: calc(100vw - 20px); }
+    .popup-finance-grid { grid-template-columns: 1fr; }
+    .popup-finance-card { min-width: 0; }
+}
+</style>
+
+</head>
+    <body>
+        <div id="map">
+
+        <div id="app-panel">
+            <div class="panel-inner">
+                <div class="panel-head">
+                    <div class="panel-heading">
+                        <p class="panel-kicker">SECPLAN · Tierras Blancas</p>
+                        <h1 class="panel-title">Proyectos e inversión territorial</h1>
+                        <p class="panel-subtitle">Visor temático de iniciativas en Tierras Blancas. Usa una sola capa temática a la vez para comparar inversión, categoría, financiamiento, estado y prioridad financiera.</p>
+                    </div>
+                    <button id="panel-toggle" class="panel-toggle" type="button" aria-label="Colapsar simbología" title="Colapsar simbología">▾</button>
+                </div>
+                <div class="panel-body">
+                    <div class="panel-chips">
+                        <span class="panel-chip">Categorías</span>
+                        <span class="panel-chip">Financiamiento</span>
+                        <span class="panel-chip">Estado</span>
+                        <span class="panel-chip">Inversión</span>
+                    </div>
+                    <div class="panel-section-title">Capas del visor</div>
+                    <div id="panel-layers"></div>
+                    <div class="panel-note">Sugerencia: deja visible solo una capa temática de proyectos a la vez. Haz clic en un punto para abrir una ficha resumida del proyecto.</div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="chart-card" class="floating-chart">
+            <div class="chart-header">
+                <div class="chart-title-wrap">
+                    <div class="chart-section-title">Resumen gráfico</div>
+                    <p class="chart-subtitle">Distribución porcentual por clasificación</p>
+                </div>
+                <button id="chart-toggle" class="chart-toggle" type="button" aria-label="Colapsar gráfico" title="Colapsar gráfico">▾</button>
+            </div>
+            <div class="chart-body">
+                <div>
+                    <label class="chart-label" for="chart-selector">Variable a resumir</label>
+                    <select id="chart-selector" class="chart-selector">
+                        <option value="categoria">Categoría</option>
+                        <option value="financiamiento">Financiamiento</option>
+                        <option value="estado">Estado</option>
+                        <option value="tematica">Prioridad financiera</option>
+                    </select>
+                    <button id="sheet-refresh" class="sheet-refresh" type="button" title="Cargar datos actualizados desde Google Sheets">↻ Actualizar datos</button>
+                    <div id="sheet-status" class="sheet-status">Fuente: esperando Google Sheets…</div>
+                </div>
+                <div class="chart-donut-wrap">
+                    <div id="chart-donut" class="chart-donut" aria-hidden="true">
+                        <div class="chart-donut-center">
+                            <div id="chart-total" class="chart-total">0</div>
+                            <div class="chart-total-label">Proyectos</div>
+                        </div>
+                    </div>
+                    <div id="chart-legend" class="chart-legend"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="brand-badge">
+            <img src="logo.png" alt="Logo municipal" class="brand-logo" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('is-hidden');">
+            <div class="brand-mark is-hidden">M</div>
+            <div class="brand-text">
+                <strong>Municipalidad de Coquimbo</strong>
+                <span>SECPLAN · Visor territorial</span>
+            </div>
+        </div>
+
+            <div id="popup" class="ol-popup">
+                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                <div id="popup-content"></div>
+            </div>
+        </div>
+        <script src="resources/qgis2web_expressions.js"></script>
+        <script src="./resources/functions.js"></script>
+        <script src="./resources/ol.js"></script>
+        <script src="./resources/ol-layerswitcher.js"></script>
+        <script src="resources/photon-geocoder-autocomplete.min.js"></script>
+        <script src="layers/SectorTierrasBlancas_2.js"></script><script src="layers/ProyectosCategoria_3.js"></script><script src="layers/ProyectosFinanciamiento_4.js"></script><script src="layers/ProyectosEstadoproyecto_5.js"></script><script src="layers/ProyectosTierrasBlancas14042026_6.js"></script><script src="layers/ProyectosProporcional_7.js"></script>
+        <script src="styles/SectorTierrasBlancas_2_style.js"></script><script src="styles/ProyectosCategoria_3_style.js"></script><script src="styles/ProyectosFinanciamiento_4_style.js"></script><script src="styles/ProyectosEstadoproyecto_5_style.js"></script><script src="styles/ProyectosTierrasBlancas14042026_6_style.js"></script><script src="styles/ProyectosProporcional_7_style.js"></script>
+        <script src="./layers/layers.js" type="text/javascript"></script> 
+        <script src="./resources/Autolinker.min.js"></script>
+        <script src="./resources/qgis2web.js"></script>        
+    
+        <script>
+        (function(){
+            const thematicLayers = [
+                { key: 'proporcional', layer: lyr_ProyectosProporcional_7, title: 'Inversión proporcional' },
+                { key: 'tematica', layer: lyr_ProyectosTierrasBlancas14042026_6, title: 'Proyectos por prioridad financiera' },
+                { key: 'estado', layer: lyr_ProyectosEstadoproyecto_5, title: 'Proyectos por estado' },
+                { key: 'financiamiento', layer: lyr_ProyectosFinanciamiento_4, title: 'Proyectos por financiamiento' },
+                { key: 'categoria', layer: lyr_ProyectosCategoria_3, title: 'Proyectos por categoría' }
+            ];
+
+            function onlyOneThematic(activeLayer) {
+                thematicLayers.forEach(item => {
+                    item.layer.setVisible(item.layer === activeLayer);
+                });
+                if (window.layerSwitcher && typeof window.layerSwitcher.renderPanel === 'function') {
+                    window.layerSwitcher.renderPanel();
+                }
+            }
+
+            // Start with proportional only
+            onlyOneThematic(lyr_ProyectosProporcional_7);
+
+            thematicLayers.forEach(item => {
+                item.layer.on('change:visible', function(){
+                    if (item.layer.getVisible()) {
+                        onlyOneThematic(item.layer);
+                    } else {
+                        const visibleOthers = thematicLayers.filter(x => x.layer.getVisible());
+                        if (visibleOthers.length === 0) {
+                            item.layer.setVisible(true);
+                        }
+                    }
+                });
+            });
+
+            const source = lyr_ProyectosProporcional_7.getSource();
+            let projectFeatures = source ? source.getFeatures() : [];
+            window.projectFeatures = projectFeatures;
+
+            function norm(v){ return (v == null ? '' : String(v)).trim(); }
+            function upper(v){ return norm(v).toUpperCase(); }
+
+            function categoriaFromIniciativa(v){
+                const t = upper(v);
+                if (/(CESFAM|SALUD|POSTA)/.test(t)) return 'Salud';
+                if (/(CAMARA|CAMARAS|TELEPROTECCION|PORTICO|LECTURA DE PATENTES|RETEN|SUBCOMISARIA|TELEVIGILANCIA|SEGURIDAD)/.test(t)) return 'Seguridad';
+                if (/(PAVIMENTACION|REPAVIMENTACION|VEREDAS|CALLE|PASAJE|AVENIDA|ACERAS)/.test(t)) return 'Vialidad y movilidad';
+                if (/(AGUAS LLUVIAS|DRENAJE|ALCANTARILLADO)/.test(t)) return 'Infraestructura hidráulica';
+                if (/(GIMNASIO|MULTICANCHA|CANCHA|CANCHAS|SINTETICA|SINTETICAS|CALISTENIA|SKATEPARK|CENDYR|TECHADO|SOMBREADERO)/.test(t)) return 'Infraestructura deportiva';
+                if (/(PLAZA|PARQUE|AREA VERDE|AREAS VERDES|JUEGOS|RIEGO|BOSQUE|ESPACIO PUBLICO|EEPP)/.test(t)) return 'Áreas verdes';
+                if (/(SEDE|CENTRO CULTURAL|DELEGACION|EDIFICIO|GALPON|EQUIPAMIENTO|CENTRO COMUNITARIO)/.test(t)) return 'Equipamiento comunitario';
+                return 'Otros';
+            }
+            function financiamientoFromField(v){
+                const t = upper(v);
+                const found = ['MUNICIPAL','SUBDERE','FNDR','SERVIU','IND'].filter(x => t.includes(x));
+                if (found.length > 1) return 'Mixto';
+                if (found.length === 1) {
+                    const map = { MUNICIPAL:'Municipal', SUBDERE:'Subdere', FNDR:'FNDR', SERVIU:'Serviu', IND:'IND' };
+                    return map[found[0]];
+                }
+                return 'Otro';
+            }
+            function estadoFromField(v){
+                const t = upper(v);
+                if (!t) return 'Sin estado';
+                if (/(TERMINAD|RECEPCION|RECEPCIONES|ADQUIRIDO|ADQUIRIDA)/.test(t)) return 'Terminado';
+                if (t.includes('EJECUCION') || t.includes('EJECUCIÓN')) return 'En ejecución';
+                if (t.includes('DISENO') || t.includes('DISEÑO')) return 'En diseño';
+                if (/(ADJUDICACION|ADJUDICACIÓN|LICITACION|LICITACIÓN|SELECCION|SELECCIÓN)/.test(t)) return 'Licitación / adjudicación';
+                if (/(TRAMITACION|TRAMITACIÓN|CONVENIO)/.test(t)) return 'En trámite';
+                if (t.includes('LIQUIDACION') || t.includes('LIQUIDACIÓN')) return 'En liquidación';
+                if (t.includes('PRESUPUESTO')) return 'En presupuesto';
+                if (t.includes('PROPUESTA') && t.includes('FINANCIAR')) return 'Propuesta a financiar';
+                return 'Otro';
+            }
+            function tematicaFromField(v, estado){
+                const t = upper(v);
+                if (t === 'CON RECURSOS') return 'Con recursos';
+                if (t === 'EN PRESUPUESTO') return 'En presupuesto';
+                if (t === 'PROPUESTA A FINANCIAR') return 'Propuesta a financiar';
+                const e = upper(estado);
+                if (e.includes('PROPUESTA') && e.includes('FINANCIAR')) return 'Propuesta a financiar';
+                if (e.includes('PRESUPUESTO')) return 'En presupuesto';
+                if (e.includes('DISENO') || e.includes('DISEÑO') || e.includes('CONVENIO') || e.includes('SELECCION') || e.includes('SELECCIÓN')) return 'En presupuesto';
+                return 'Con recursos';
+            }
+
+            const chartColors = {
+                'Áreas verdes':'#46b76a', 'Infraestructura deportiva':'#2d8fdd', 'Equipamiento comunitario':'#f39c12', 'Vialidad y movilidad':'#8e59d1', 'Seguridad':'#e74c3c', 'Infraestructura hidráulica':'#18b7b0', 'Salud':'#6c7a89', 'Otros':'#9aa5b1',
+                'Municipal':'#2276d2', 'Subdere':'#2ea44f', 'FNDR':'#7d4bcc', 'Serviu':'#f08c2b', 'IND':'#d84b3f', 'Mixto':'#13a7a0', 'Otro':'#9aa5b1',
+                'Terminado':'#2fb463', 'En ejecución':'#f3c623', 'En diseño':'#3498db', 'Licitación / adjudicación':'#8e59d1', 'En trámite':'#f08c2b', 'En liquidación':'#7f8c8d', 'En presupuesto':'#3478db', 'Propuesta a financiar':'#e74c3c', 'Sin estado':'#b8c2cc',
+                'Con recursos':'#2ea44f', 'En presupuesto':'#f39c12', 'Propuesta a financiar':'#e74c3c', 'Sin dato':'#9aa5b1'
+            };
+
+            function summarize(variable){
+                const counts = {};
+                projectFeatures.forEach(f => {
+                    const p = f.getProperties();
+                    let key = '';
+                    if (variable === 'categoria') key = categoriaFromIniciativa(p.INICIATIVA);
+                    else if (variable === 'financiamiento') key = financiamientoFromField(p.FINANCIAMI);
+                    else if (variable === 'estado') key = estadoFromField(p.ESTADO);
+                    else key = tematicaFromField(p.TEMATICA, p.ESTADO);
+                    counts[key] = (counts[key] || 0) + 1;
+                });
+                return counts;
+            }
+
+            function renderChart(variable){
+                const donut = document.getElementById('chart-donut');
+                const legend = document.getElementById('chart-legend');
+                const totalEl = document.getElementById('chart-total');
+                if (!donut || !legend || !totalEl) return;
+                const counts = summarize(variable);
+                const rows = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+                const total = rows.reduce((acc, [,v]) => acc + v, 0) || 1;
+
+                let angle = 0;
+                const stops = [];
+                rows.forEach(([name, value]) => {
+                    const pct = value / total;
+                    const next = angle + pct * 360;
+                    const color = chartColors[name] || '#5b7c99';
+                    stops.push(`${color} ${angle.toFixed(1)}deg ${next.toFixed(1)}deg`);
+                    angle = next;
+                });
+                donut.style.setProperty('--donut-bg', `conic-gradient(${stops.join(', ')})`);
+                donut.style.animation = 'none';
+                void donut.offsetWidth;
+                donut.style.animation = 'donutPop .7s cubic-bezier(.2,.8,.2,1) forwards';
+
+                totalEl.textContent = total;
+                legend.innerHTML = rows.map(([name, value]) => {
+                    const pct = Math.round((value/total)*1000)/10;
+                    const color = chartColors[name] || '#5b7c99';
+                    return `<div class="chart-legend-item"><span class="chart-dot" style="background:${color}"></span><span class="chart-item-name" title="${name}">${name}</span><span class="chart-item-value">${pct}%</span></div>`;
+                }).join('');
+            }
+
+
+            const SHEET_ID = '1FL0NyMhlzAOaBghITMGmTvwBrZZhIvn6qSzWSOI1sIc';
+            const PUBLISHED_SHEET_ID = '2PACX-1vRnSb0OdE9xfbsIMmH3uUK2nnAczHgcOvga5y1pl9mTKhUxgxIvzEfcyXqs9tkwLv0Z-AkvO0cjJ9Ba';
+            const SHEET_GID = '0';
+
+            function setSheetStatus(message, state) {
+                const el = document.getElementById('sheet-status');
+                if (!el) return;
+                el.textContent = message;
+                el.classList.remove('is-ok', 'is-error', 'is-loading');
+                if (state) el.classList.add(state);
+            }
+
+            function parseNumberFlexible(value) {
+                if (value === null || value === undefined || value === '') return 0;
+                let s = String(value).trim().replace(/\s/g, '').replace(/\$/g, '');
+                if (!s) return 0;
+                if (/e/i.test(s)) {
+                    const exp = Number(s.replace(',', '.'));
+                    return isNaN(exp) ? 0 : exp;
+                }
+                const hasComma = s.includes(',');
+                const hasDot = s.includes('.');
+                if (hasComma && hasDot) {
+                    if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+                    else s = s.replace(/,/g, '');
+                } else if (hasComma) {
+                    s = s.replace(',', '.');
+                } else if ((s.match(/\./g) || []).length > 1) {
+                    s = s.replace(/\./g, '');
+                }
+                const n = Number(s);
+                return isNaN(n) ? 0 : n;
+            }
+
+            function parseCoord(value) {
+                if (value === null || value === undefined || value === '') return NaN;
+                let s = String(value).trim().replace(/\s/g, '');
+                if (!s) return NaN;
+                if (s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
+                const n = Number(s);
+                return isNaN(n) ? NaN : n;
+            }
+
+            function normalizeHeader(header) {
+                return String(header || '').replace(/^\uFEFF/, '').trim().toUpperCase();
+            }
+
+            function gvizCellToString(cell) {
+                if (!cell) return '';
+                if (cell.f !== undefined && cell.f !== null && String(cell.f).trim() !== '') return String(cell.f).trim();
+                if (cell.v !== undefined && cell.v !== null) return String(cell.v).trim();
+                return '';
+            }
+
+            function gvizResponseToObjects(table) {
+                if (!table || !table.cols || !table.rows) return [];
+                const headers = table.cols.map((col, idx) => {
+                    const label = col.label || col.id || ('COL' + idx);
+                    return normalizeHeader(label);
+                });
+                return table.rows.map(row => {
+                    const obj = {};
+                    headers.forEach((h, idx) => {
+                        obj[h] = gvizCellToString(row.c ? row.c[idx] : null);
+                    });
+                    return obj;
+                });
+            }
+
+            function makeFeature(row) {
+                const lat = parseCoord(row.NORTE);
+                const lon = parseCoord(row.ESTE);
+                if (!isFinite(lat) || !isFinite(lon)) return null;
+                if (lat > -20 || lat < -40 || lon > -60 || lon < -80) return null;
+
+                const externo = parseNumberFlexible(row.EXTERNO);
+                const municipal = parseNumberFlexible(row.MUNICIPAL);
+                let monto = parseNumberFlexible(row.MONTO);
+                if (!monto && (externo || municipal)) monto = externo + municipal;
+
+                const props = Object.assign({}, row, {
+                    EXTERNO: externo,
+                    MUNICIPAL: municipal,
+                    MONTO: monto,
+                    NORTE: lat,
+                    ESTE: lon
+                });
+
+                props.categoria = props.categoria || props.CATEGORIA || categoriaFromIniciativa(props.INICIATIVA);
+                props.fuente_fin = props.fuente_fin || props.FUENTE_FIN || financiamientoFromField(props.FINANCIAMI);
+                props.estado_simple = props.estado_simple || props.ESTADO_SIMPLE || props.ESTADO_SIM || estadoFromField(props.ESTADO);
+                props.TEMATICA = props.TEMATICA || tematicaFromField(props.TEMATICA, props.ESTADO);
+
+                return new ol.Feature({
+                    geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat])),
+                    ...props
+                });
+            }
+
+            function cloneFeatures(features) {
+                return features.map(f => f.clone());
+            }
+
+            function updateProjectSources(features) {
+                const projectLayers = [
+                    lyr_ProyectosCategoria_3,
+                    lyr_ProyectosFinanciamiento_4,
+                    lyr_ProyectosEstadoproyecto_5,
+                    lyr_ProyectosTierrasBlancas14042026_6,
+                    lyr_ProyectosProporcional_7
+                ];
+
+                projectLayers.forEach(layer => {
+                    layer.setSource(new ol.source.Vector({
+                        features: cloneFeatures(features),
+                        attributions: 'Google Sheets'
+                    }));
+                });
+
+                projectFeatures = features;
+                window.projectFeatures = projectFeatures;
+
+                const amounts = features.map(f => parseNumberFlexible(f.get('MONTO'))).filter(n => n > 0);
+                if (amounts.length) {
+                    window.projectMontoStats = {min: Math.min(...amounts), max: Math.max(...amounts)};
+                }
+
+                projectLayers.forEach(layer => layer.changed());
+
+                const currentSelector = document.getElementById('chart-selector');
+                renderChart(currentSelector ? currentSelector.value : 'categoria');
+            }
+
+            function loadGvizJsonp() {
+                return new Promise((resolve, reject) => {
+                    const callbackName = 'tbSheetCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+                    const timeoutMs = 15000;
+
+                    // IMPORTANTE:
+                    // La ruta /spreadsheets/d/e/.../gviz devuelve HTML en algunos navegadores.
+                    // Eso provoca error MIME "text/html" y bloquea el script.
+                    // Por eso usamos el ID real de la planilla con /spreadsheets/d/.../gviz.
+                    const url =
+                        'https://docs.google.com/spreadsheets/d/' +
+                        SHEET_ID +
+                        '/gviz/tq?gid=' + encodeURIComponent(SHEET_GID) +
+                        '&headers=1&tqx=' +
+                        encodeURIComponent('out:json;responseHandler:' + callbackName) +
+                        '&tq=' + encodeURIComponent('select *') +
+                        '&cacheBust=' + Date.now();
+
+                    let script = document.createElement('script');
+                    let timer = window.setTimeout(() => {
+                        cleanup();
+                        reject(new Error('Tiempo de espera agotado leyendo Google Sheets.'));
+                    }, timeoutMs);
+
+                    function cleanup() {
+                        window.clearTimeout(timer);
+                        if (script && script.parentNode) script.parentNode.removeChild(script);
+                        try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+                    }
+
+                    window[callbackName] = function(response) {
+                        cleanup();
+                        if (!response || response.status === 'error') {
+                            const detail = response && response.errors && response.errors[0] ? response.errors[0].detailed_message : 'Respuesta inválida de Google Sheets.';
+                            reject(new Error(detail));
+                            return;
+                        }
+                        try {
+                            const objects = gvizResponseToObjects(response.table);
+                            resolve(objects);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+
+                    script.onerror = function() {
+                        cleanup();
+                        reject(new Error('No se pudo cargar el script JSONP de Google Sheets.'));
+                    };
+
+                    script.src = url;
+                    document.head.appendChild(script);
+                });
+            }
+
+            async function loadGoogleSheetProjects() {
+                setSheetStatus('Actualizando desde Google Sheets…', 'is-loading');
+
+                try {
+                    const rows = await loadGvizJsonp();
+                    const features = rows.map(makeFeature).filter(Boolean);
+
+                    if (!features.length) {
+                        throw new Error('La planilla cargó, pero no se encontraron coordenadas válidas en NORTE/ESTE.');
+                    }
+
+                    updateProjectSources(features);
+
+                    const stamp = new Date().toLocaleTimeString('es-CL', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+
+                    setSheetStatus(`Fuente activa: Google Sheets · ${features.length} proyectos · ${stamp}`, 'is-ok');
+                    console.info('Proyectos cargados desde Google Sheets vía JSONP directo:', features.length);
+                    return true;
+                } catch (err) {
+                    setSheetStatus('No se pudo actualizar desde Google Sheets. Se mantienen datos de respaldo.', 'is-error');
+                    console.warn('Se mantienen los datos estáticos porque falló la carga dinámica:', err);
+                    return false;
+                }
+            }
+
+            window.actualizarDatosDesdeSheets = loadGoogleSheetProjects;
+
+            const selector = document.getElementById('chart-selector');
+            if (selector) {
+                selector.addEventListener('change', function(){ renderChart(this.value); });
+                renderChart(selector.value);
+            }
+
+            const refreshButton = document.getElementById('sheet-refresh');
+            if (refreshButton) {
+                refreshButton.addEventListener('click', loadGoogleSheetProjects);
+            }
+
+            loadGoogleSheetProjects();
+
+            const chartCard = document.getElementById('chart-card');
+            const chartToggle = document.getElementById('chart-toggle');
+            if (chartCard && chartToggle) {
+                chartToggle.addEventListener('click', function(){
+                    chartCard.classList.toggle('is-collapsed');
+                    const collapsed = chartCard.classList.contains('is-collapsed');
+                    chartToggle.setAttribute('aria-label', collapsed ? 'Expandir gráfico' : 'Colapsar gráfico');
+                    chartToggle.setAttribute('title', collapsed ? 'Expandir gráfico' : 'Colapsar gráfico');
+                });
+            }
+
+            const appPanel = document.getElementById('app-panel');
+            const panelToggle = document.getElementById('panel-toggle');
+            function setCollapseState(el, toggle, collapsed, expandLabel, collapseLabel) {
+                if (!el || !toggle) return;
+                el.classList.toggle('is-collapsed', collapsed);
+                toggle.setAttribute('aria-label', collapsed ? expandLabel : collapseLabel);
+                toggle.setAttribute('title', collapsed ? expandLabel : collapseLabel);
+            }
+            if (appPanel && panelToggle) {
+                panelToggle.addEventListener('click', function(){
+                    const collapsed = !appPanel.classList.contains('is-collapsed');
+                    setCollapseState(appPanel, panelToggle, collapsed, 'Expandir simbología', 'Colapsar simbología');
+                });
+            }
+            const mediaCompact = window.matchMedia('(max-width: 860px)');
+            const mediaTiny = window.matchMedia('(max-width: 560px)');
+            let panelUserToggled = false;
+            let chartUserToggled = false;
+
+            if (appPanel && panelToggle) {
+                panelToggle.addEventListener('click', function(){
+                    panelUserToggled = true;
+                }, {capture:true});
+            }
+            if (chartCard && chartToggle) {
+                chartToggle.addEventListener('click', function(){
+                    chartUserToggled = true;
+                }, {capture:true});
+            }
+
+            function applyResponsiveUI(forceInitial) {
+                if (appPanel && panelToggle) {
+                    const shouldCollapsePanel = mediaCompact.matches;
+                    if (forceInitial) {
+                        setCollapseState(appPanel, panelToggle, shouldCollapsePanel, 'Expandir simbología', 'Colapsar simbología');
+                    }
+                }
+                if (chartCard && chartToggle) {
+                    const shouldCollapseChart = mediaTiny.matches || mediaCompact.matches;
+                    if (forceInitial) {
+                        chartCard.classList.toggle('is-collapsed', shouldCollapseChart);
+                        chartToggle.setAttribute('aria-label', shouldCollapseChart ? 'Expandir gráfico' : 'Colapsar gráfico');
+                        chartToggle.setAttribute('title', shouldCollapseChart ? 'Expandir gráfico' : 'Colapsar gráfico');
+                    }
+                }
+            }
+            try {
+                mediaCompact.addEventListener('change', function(){ applyResponsiveUI(false); });
+                mediaTiny.addEventListener('change', function(){ applyResponsiveUI(false); });
+            } catch (e) {
+                mediaCompact.addListener(function(){ applyResponsiveUI(false); });
+                mediaTiny.addListener(function(){ applyResponsiveUI(false); });
+            }
+            applyResponsiveUI(true);
+        })();
+        </script>
+
+</body>
+</html>
